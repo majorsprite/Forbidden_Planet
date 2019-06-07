@@ -1,0 +1,1 @@
+require "maps.forbidden_planet.core"
