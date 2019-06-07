@@ -16,7 +16,7 @@ local config = {
       ["iron-ore"]    = { bias = 10,  size = 1, richness = 1, richness_distance_factor = 1.01 },
       ["copper-ore"]  = { bias = 6,  size = 1, richness = 1, richness_distance_factor = 1.01 },
       ["stone"]       = { bias = 4,  size = 1, richness = 1, richness_distance_factor = 1.01 },
-      ["crude-oil"]   = { bias = 200,  size = 1, richness = 1, richness_distance_factor = 1.01 },
+      ["crude-oil"]   = { bias = 1,  size = 1, richness = 1, richness_distance_factor = 1.01 },
       ["uranium-ore"] = { bias = 1,  size = 1, richness = 1, richness_distance_factor = 1.01 },
     } 
   }

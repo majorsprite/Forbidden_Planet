@@ -177,7 +177,10 @@ local function flood_fill(x, y, surface, chunks, entities)
           local dist = distance({0,0}, {pos_x, pos_y})
           richness_distance_factor = richness_distance_factor + (dist * 0.1)
           local amount = math.random((400 * richness_distance_factor) * richness, (400 * richness_distance_factor) * richness * 1.2)
+          game.print(sizeof(close))
+          if name == "crude-oil" and close[1] then goto dont_spawn end
           surface.create_entity({ name = name, position = pos, amount = amount } )
+          ::dont_spawn::
         end 
 
       end
