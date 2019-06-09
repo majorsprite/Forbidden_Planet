@@ -101,15 +101,13 @@ end
 
 
 
-local function flood_fill(x, y, surface, chunks, entities) 
+local function flood_fill(x, y, surface) 
 
-  chunks = chunks or {}
-  entities = entities or {}
+
+  --surface.request_to_generate_chunks({x, y}, 1)
+  --surface.force_generate_chunk_requests()
   
-  surface.request_to_generate_chunks({x, y}, 1)
-  surface.force_generate_chunk_requests()
-  
-    
+  local entities = {}  
   for pos_y = y - 1, y + 1 do
     for pos_x = x - 1, x + 1 do
       if pos_y == y and pos_x == x then goto continue end
@@ -138,7 +136,7 @@ local function flood_fill(x, y, surface, chunks, entities)
             local tree = tree_table[math.random(#tree_table)]
             table.insert(entities, { name = tree, position = pos })
           end
-          flood_fill(pos.x, pos.y, surface, chunks, entities)  
+          flood_fill(pos.x, pos.y, surface)
 
         elseif large > 0.8 then
 
@@ -156,7 +154,7 @@ local function flood_fill(x, y, surface, chunks, entities)
   
           end
 
-          flood_fill(pos.x, pos.y, surface, chunks, entities)  
+          flood_fill(pos.x, pos.y, surface)
 
         elseif path > 0.5 and path < 0.9 and (small < 0  and large < 0.85) then
 
@@ -164,9 +162,9 @@ local function flood_fill(x, y, surface, chunks, entities)
             local tree = tree_table[math.random(#tree_table)]
             table.insert(entities, { name = tree, position = pos })
           end
-          flood_fill(pos.x, pos.y, surface, chunks, entities)  
+          flood_fill(pos.x, pos.y, surface) 
         else
-          table.insert(entities, { name = rock, position = pos })
+          surface.create_entity({ name = rock, position = pos })
         end
 
         if ore > 0.75 then
@@ -177,7 +175,6 @@ local function flood_fill(x, y, surface, chunks, entities)
           local dist = distance({0,0}, {pos_x, pos_y})
           richness_distance_factor = richness_distance_factor + (dist * 0.1)
           local amount = math.random((400 * richness_distance_factor) * richness, (400 * richness_distance_factor) * richness * 1.2)
-          game.print(sizeof(close))
           if name == "crude-oil" and close[1] then goto dont_spawn end
           surface.create_entity({ name = name, position = pos, amount = amount } )
           ::dont_spawn::
@@ -191,15 +188,7 @@ local function flood_fill(x, y, surface, chunks, entities)
     end
   end
 
-  local tmp = {}
-
-  for _, chunk in pairs(chunks) do
-    table.insert( tmp, chunk )
-  end
-
   --surface.regenerate_decorative(nil, {{ x = xx - 1, y = yy - 1 }})
-  --generate_entities(entities, surface)
-  return { entities  = entities, chunks =  tmp  }
 end
 
 
@@ -304,8 +293,8 @@ local function player_mined(event)
   local player = game.players[event.player_index]
   local entity = event.entity
 
-  if not Validate:player(player) then return end
-  if not Validate:entity(entity) then return end
+  if not Validate.player(player) then return end
+  if not Validate.entity(entity) then return end
 
   local x = entity.position.x
   local y = entity.position.y
@@ -313,21 +302,32 @@ local function player_mined(event)
 
   event.buffer.clear()
 
-  local data = flood_fill(x, y, surface)
-  generate_entities(data.entities, surface)
+  flood_fill(x, y, surface)
+
   
 end
 
 local function entity_died(event)
   local entity = event.entity
   local loot = event.loot
+
+  if not Validate.entity(entity) then return end
+
+  local entity_is_a_rock = false
+  for _, rock in pairs(rock_table) do
+    if rock == entity.name then
+      entity_is_a_rock = true
+      break
+    end
+  end
+
+  if not entity_is_a_rock then return end
+
   if loot then loot.clear() end
   local surface = entity.surface
   local x = entity.position.x
   local y = entity.position.y
-  local data = flood_fill(x, y, surface)
-  generate_entities(data.entities, surface)
-  entity.surface.regenerate_entity(nil,  data.chunks)
+  flood_fill(x, y, surface)
 end 
 
 
