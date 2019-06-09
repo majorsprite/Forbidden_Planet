@@ -43,11 +43,26 @@ local function init_surface(surface)
 
 end
 
+local function init_teleport(surface)
+  local port = surface.create_entity{ name = "player-port", position = {-2, 0}, force = game.forces.neutral}
+  rendering.draw_text{
+    text = "Elevator",
+    surface = surface,
+    target = port,
+    target_offset = {0, -0.4},
+    color = { r = 1, g = 1, b = 0},
+    alignment = "center"
+  }
+  port.minable = false
+  port.destructible = false
+end
 
 local function init()
   local surface = game.create_surface(surface_name)
   init_surface(surface)
   surface.request_to_generate_chunks({0,0}, 2)
+  init_teleport(surface)
+
 end
 
 
