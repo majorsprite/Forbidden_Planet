@@ -11,6 +11,7 @@ end)
 
 local function chat(event)
   if not event then return end
+  if not event.player_index then return end
   local player = game.players[event.player_index]
   if not Validate.player(player) then return end
   local surface = player.surface
