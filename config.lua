@@ -11,12 +11,8 @@ global.config = {
 
     enabled = true,
     get_experience_to_level = function(level)
-      -- Change this formula to edit level rates
-      local val = 0
-      for i = 1, level do
-        val = val + math.floor((20*i^2.8*1^2*i)*0.15)+200
-      end
-      return val
+      local value = math.floor(250+(50 * (level ^ 3)) / 5)
+      return value
     end,
     upgrades = { 
       ["Mining"]    = { enabled = true, bonus_per_level = 1 },
@@ -27,10 +23,15 @@ global.config = {
       ["Fortune"]   = { enabled = false, bonus_per_level = 1 }
      },
     experience_rates = {
-      ["rock-huge"] = 50, 
-      ["rock-big"] = 40, 
-      ["sand-rock-big"] = 50,
-      ["small-biter"] = 10
+      
+      ["rock-huge"]       = 25, 
+      ["rock-big"]        = 20, 
+      ["sand-rock-big"]   = 25,
+
+      ["small-biter"]     = 5,
+      ["medium-biter"]    = 10,
+      ["big-biter"]       = 100,
+      ["behemoth-biter"]  = 500,
      } 
   },
   darkness_tracker = { enabled = true },
