@@ -1,6 +1,5 @@
 local config = {
   debug = false,
-  darkness_tracker = { enabled = true },
   map_gen = {
     seed = 9876,
     spawn_radius = 10,
@@ -12,12 +11,12 @@ local config = {
       water = { "deepwater-green", "water-green" }
     },
     resources = {
-      ["coal"]        = { bias = 15, size = 1, richness = 1, richness_distance_factor = 1.01 },
-      ["iron-ore"]    = { bias = 10,  size = 1, richness = 1, richness_distance_factor = 1.01 },
-      ["copper-ore"]  = { bias = 6,  size = 1, richness = 1, richness_distance_factor = 1.01 },
-      ["stone"]       = { bias = 4,  size = 1, richness = 1, richness_distance_factor = 1.01 },
-      ["crude-oil"]   = { bias = 1,  size = 1, richness = 1, richness_distance_factor = 1.01 },
-      ["uranium-ore"] = { bias = 1,  size = 1, richness = 1, richness_distance_factor = 1.01 },
+      ["coal"]        = { bias = 15, richness = 1, richness_distance_factor = 1.01 },
+      ["iron-ore"]    = { bias = 10, richness = 1, richness_distance_factor = 1.01 },
+      ["copper-ore"]  = { bias = 6, richness = 1, richness_distance_factor = 1.01 },
+      ["stone"]       = { bias = 4, richness = 1, richness_distance_factor = 1.01 },
+      ["crude-oil"]   = { bias = 1, richness = 1, richness_distance_factor = 1.01 },
+      ["uranium-ore"] = { bias = 1, richness = 1, richness_distance_factor = 1.01 },
     } 
   }
 }
