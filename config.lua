@@ -8,6 +8,14 @@ global.config = {
   levels = { 
 
     enabled = true,
+    reset = { 
+      enabled = true, 
+      price = { 
+        enabled = true,
+        token = "coin",
+        amount = 25
+      }
+    },
     get_experience_to_level = function(level)
       local value = math.floor(250+(50 * (level ^ 3)) / 5)
       return value
@@ -20,6 +28,22 @@ global.config = {
       ["Reach"]     = { enabled = true, bonus_per_level = 0.25 },
       ["Fortune"]   = { enabled = false, bonus_per_level = 1 }
      },
+    level_rewards = {
+      token = "coin",
+      reward_for_level = 1,
+      exceptions = { 
+        [5]  =  10,
+        [10] =  20,
+        [15] =  30,
+        [20] =  40,
+        [25] =  50,
+        [30] =  60,
+        [35] =  70,
+        [40] =  80,
+        [45] =  90,
+        [50] =  100,
+      }
+    },
     experience_rates = {
       
       ["rock-huge"]       = 25, 

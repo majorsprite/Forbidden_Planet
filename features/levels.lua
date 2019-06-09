@@ -16,8 +16,6 @@ end)
 
 
 local upgrades = config.levels.upgrades
-
-
 local get_experience_to_level = config.levels.get_experience_to_level
 
 
@@ -38,9 +36,22 @@ local function player_mined(event)
   local new_experience = current_experience + experience_rate
   levels[player.name].experience = new_experience
   if new_experience >= experience_to_level then
-    game.print("levelup")
+
     levels[player.name].level = levels[player.name].level + 1
     levels[player.name].talent_points = levels[player.name].talent_points + 1
+
+    local level_reward = config.levels.level_rewards
+    local token = level_reward.token
+    local reward_for_level = level_reward.reward_for_level
+    local exception = level_reward.exceptions[levels[player.name].level]
+    
+    local insert = {
+      name = token,
+      count = exception or reward_for_level
+    }
+    player.print({"info.level_up_message", levels[player.name].level, exception or reward_for_level, token})
+    player.insert(insert)
+
   end
   
 end
@@ -93,6 +104,16 @@ local function update_player_bonuses(player, upgrade, level)
   elseif upgrade == "Fortune" then
   end
 
+end
+
+local function reset_talents(player)
+  for upgrade, data in pairs(upgrades) do
+    if not data.enabled then goto continue end
+    levels[player.name].upgrades[upgrade] = 0
+    update_player_bonuses(player, upgrade, 1)
+    ::continue::
+  end
+  levels[player.name].talent_points = levels[player.name].level
 end
 
 local function update_gui()
@@ -189,12 +210,31 @@ local function gui_click(event)
     frame.style.minimal_width = 250
     local table = frame.add{ type = "table", column_count = 2}
     Gui.header(table, "Talents")
-    local reset_button = table.add{type = "button", caption = "↺"}
+    local reset_enabled = config.levels.reset.enabled
+    local reset_price_enabled = config.levels.reset.price.enabled
+    local reset_price = config.levels.reset.price.amount
+    local reset_token = config.levels.reset.price.token
+    local tooltip = "Resets Talents."
+
+    if reset_price_enabled then
+      tooltip = tooltip .. string.format("\nPrice: %d [item=%s]", reset_price, reset_token)
+    end
+
+    local reset_button = table.add{
+      type = "button", 
+      caption = "⟲",
+      tooltip = tooltip,
+      name = "level_gui_reset_button"
+    }
     --reset_button.style = "tool_button"
     reset_button.style.width = 25
     reset_button.style.height = 25
     reset_button.style.padding = 0
     reset_button.style.font = "default"
+
+    if not reset_enabled then
+      reset_button.enabled = false
+    end
     
   
     local temp = {}
@@ -238,7 +278,23 @@ local function gui_click(event)
     levels[player.name].progress_bar = progress_bar
     levels[player.name].talent_points_label = talent_points_label
     player.opened = frame
-  
+  elseif element.name == "level_gui_reset_button" then
+    if not config.levels.reset.enabled then return end
+
+    if config.levels.reset.price.enabled then
+      local inventory = player.get_main_inventory()
+      local token = config.levels.reset.price.token
+      local player_tokens = inventory.get_item_count(token)
+      local amount = config.levels.reset.price.amount
+      if player_tokens < amount then
+        player.print({"info.talent_reset_insufficient_funds", token, amount})
+        return
+      end
+      player.remove({ name = token, count = amount })
+      reset_talents(player)
+    else
+      reset_talents(player)
+    end
   end
 end
 
