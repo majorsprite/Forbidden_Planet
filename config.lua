@@ -68,7 +68,7 @@ global.config = {
     location = {-2, 0}
   },
   circuit_network = {
-    enabled = false,
+    enabled = true,
     location = {-4, 0}
   }
 }
