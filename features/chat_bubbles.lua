@@ -10,13 +10,13 @@ end)
 
 
 local function chat(event)
+  if not event then return end
   local player = game.players[event.player_index]
-  if not Validate:player(player) then return end
+  if not Validate.player(player) then return end
   local surface = player.surface
   local message = event.message
 
   if message then
-     
     if current_messages[player.name] then
       rendering.destroy(current_messages[player.name])
     end
@@ -24,8 +24,8 @@ local function chat(event)
       text = message, 
       surface = surface,
       target = player.character,
-      target_offset = { 0, -2.2 },
-      color = player.color,
+      target_offset = { 0, -3 },
+      color = { r = player.color.r, g = player.color.g, b = player.color.b },
       time_to_live = 120,
       alignment = "center"
     })
