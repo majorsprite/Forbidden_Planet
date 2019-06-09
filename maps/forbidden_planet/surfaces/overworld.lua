@@ -1,6 +1,7 @@
 local Event = require "utils.event"
-
 local surface_name = "overworld"
+local global_config = require "config"
+
 local function init_surface(surface)
     surface.map_gen_settings = {
         autoplace_controls = {
@@ -45,7 +46,9 @@ end
 local function init()
     local surface = game.create_surface(surface_name)
     init_surface(surface)
-    init_teleport(surface)
+    if global_config.player_elevator.enabled then
+        init_teleport(surface)
+    end
 end
 
 Event.on_init(init)

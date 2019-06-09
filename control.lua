@@ -15,3 +15,6 @@ if config.chat_bubbles.enabled then
   require "features.chat_bubbles"
 end
 
+if config.player_elevator.enabled then
+  require "features.player_elevator"
+end

@@ -1,5 +1,3 @@
-
-
 global.config = {
 
   market = {
@@ -60,6 +58,14 @@ global.config = {
   },
   darkness_tracker = { enabled = true },
   chat_bubbles = { enabled = true },
+  player_elevator = {
+    enabled = true,
+
+    -- minimum time between teleports, to prevent going back and forth too quickly
+    cooldown_ticks = 60 * 3,
+
+    location = {-2, 0}
+  }
 }
 
 
