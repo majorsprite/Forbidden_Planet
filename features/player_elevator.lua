@@ -18,8 +18,14 @@ local function run(event)
       if time_since_teleport > config.player_elevator.cooldown_ticks then
         if player.surface.find_entity("player-port", player.position) then
           local target_surface = player.surface.name == "caverns" and "overworld" or "caverns"
+          local target_pos = {-2, 0}
           last_teleport_times[player.name] = game.tick
-          player.teleport(config.player_elevator.location, target_surface)
+          local safe_pos = game.surfaces[target_surface].find_non_colliding_position("character", target_pos, 20, 1)
+          if safe_pos then
+            player.teleport(safe_pos, target_surface)
+          else
+            player.teleport(target_pos, target_surface)
+          end
         end
       end
     end
