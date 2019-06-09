@@ -18,3 +18,7 @@ end
 if config.player_elevator.enabled then
   require "features.player_elevator"
 end
+
+if config.circuit_network.enabled then
+  require "features.circuit_network"
+end
