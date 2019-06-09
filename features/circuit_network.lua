@@ -17,6 +17,10 @@ local function init()
     wire = defines.wire_type.green,
     target_entity = overworld_pole
   })
+  caverns_pole.connect_neighbour({
+    wire = defines.wire_type.red,
+    target_entity = overworld_pole
+  })
 end
 
 Event.on_init(init)
