@@ -7,14 +7,13 @@ local Color = require "utils.color"
 require "utils.math"
 
 local levels = { }
-local max_upgrades = 10
 
 Global.register({ levels = levels }, function (global) 
   levels = global.levels
 end)
 
 
-
+local max_upgrades = config.levels.max_upgrades
 local upgrades = config.levels.upgrades
 local get_experience_to_level = config.levels.get_experience_to_level
 
@@ -299,10 +298,21 @@ local function gui_click(event)
 end
 
 commands.add_command("levels", "usage /levels or /levels <name>\nLists the levels by a player or players", function(event)
-  for _, p in pairs(game.connected_players) do
-    game.print(p.name, p.color)
-    game.print(string.format("%10s %s","Level:" ,levels[p.name].level))
-    game.print(string.format("%15s %s","Experience:", levels[p.name].experience))
+  local player = game.players[event.player_index]
+  if not Validate.player(player) then return end
+  local params = event.parameter
+  if not params then
+    for _, p in pairs(game.connected_players) do
+      player.print(p.name, p.color)
+      player.print(string.format("%10s %s","Level:" ,levels[p.name].level))
+      player.print(string.format("%15s %s","Experience:", levels[p.name].experience))
+    end
+  else
+    local target_player = game.players[params]
+    if not Validate.player(target_player) then return end
+    player.print(target_player.name, target_player.color)
+    player.print(string.format("%10s %s","Level:" ,levels[target_player.name].level))
+    player.print(string.format("%15s %s","Experience:", levels[target_player.name].experience))
   end
 end)
 

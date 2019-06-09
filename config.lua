@@ -10,6 +10,7 @@ global.config = {
   levels = { 
 
     enabled = true,
+    max_upgrades = 10,
     reset = { 
       enabled = true, 
       price = { 
