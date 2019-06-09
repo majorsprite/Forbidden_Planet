@@ -69,7 +69,7 @@ global.config = {
   },
   circuit_network = {
     enabled = true,
-    location = {-4, 0}
+    location = {-6, 0}
   }
 }
 
