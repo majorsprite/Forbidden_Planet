@@ -7,8 +7,7 @@ local Simplex = require "utils.simplex"
 local generate_entities = require "utils.generate_entities"
 local Validate = require "utils.validate"
 local sizeof = require "utils.sizeof"
-
-
+local global_config = require "config"
 
 
 
@@ -61,7 +60,9 @@ local function init()
   local surface = game.create_surface(surface_name)
   init_surface(surface)
   surface.request_to_generate_chunks({0,0}, 2)
-  init_teleport(surface)
+  if global_config.player_elevator.enabled then
+    init_teleport(surface)
+  end
 
 end
 

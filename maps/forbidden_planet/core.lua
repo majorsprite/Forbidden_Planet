@@ -3,7 +3,6 @@ local Event = require "utils.event"
 
 require "surfaces.caverns"
 require "surfaces.overworld"
-require "utils.player_elevator"
 
 Event.register("player_created", function(event)
 
