@@ -49,6 +49,12 @@ local function init()
     if global_config.player_elevator.enabled then
         init_teleport(surface)
     end
+
+    if global_config.circuit_network.enabled then
+        local pole = surface.create_entity{ name = "big-electric-pole", position = {-4, 0}, force = game.forces.neutral}
+        pole.minable = false
+        pole.destructible = false
+    end
 end
 
 Event.on_init(init)

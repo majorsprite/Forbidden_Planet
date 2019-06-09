@@ -66,6 +66,10 @@ global.config = {
     cooldown_ticks = 60 * 3,
 
     location = {-2, 0}
+  },
+  circuit_network = {
+    enabled = true,
+    location = {-4, 0}
   }
 }
 
