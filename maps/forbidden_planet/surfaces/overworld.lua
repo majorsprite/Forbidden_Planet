@@ -51,7 +51,7 @@ local function init()
     end
 
     if global_config.circuit_network.enabled then
-        local pole = surface.create_entity{ name = "big-electric-pole", position = {-4, 0}, force = game.forces.neutral}
+        local pole = surface.create_entity{ name = "big-electric-pole", position = global_config.circuit_network.location, force = game.forces.neutral}
         pole.minable = false
         pole.destructible = false
     end
