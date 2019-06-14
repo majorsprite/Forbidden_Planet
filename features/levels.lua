@@ -2,8 +2,10 @@ local Event = require "utils.event"
 local config = require "config"
 local Global = require "utils.global"
 local Validate = require "utils.validate"
+local sizeof = require "utils.sizeof"
 local Gui = require "utils.gui"
 local Color = require "utils.color"
+local count_occupied_inventory_slots = require "utils.count_occupied_inventory_slots"
 require "utils.math"
 
 local levels = { }
@@ -16,26 +18,31 @@ end)
 local max_upgrades = config.levels.max_upgrades
 local upgrades = config.levels.upgrades
 local get_experience_to_level = config.levels.get_experience_to_level
+local experience_drops_enabled = config.levels.experience_drops_enabled
 
 
+local function do_level_up(player, entity)
 
-local function player_mined(event)
-  local player = game.players[event.player_index]
-  local entity = event.entity
-
-  if not Validate.player(player) then return end
-  if not Validate.entity(entity) then return end
-
-  
-  local level = levels[player.name].level
-  local current_experience = levels[player.name].experience
-  local experience_to_level = get_experience_to_level(level + 1)
   local experience_rate = config.levels.experience_rates[entity.name]
+  local level = levels[player.name].level
+  local experience_to_level = get_experience_to_level(level + 1)
   if not experience_rate then return end
+
+  local current_experience = levels[player.name].experience
   local new_experience = current_experience + experience_rate
   levels[player.name].experience = new_experience
-  if new_experience >= experience_to_level then
 
+  if experience_drops_enabled then
+    player.surface.create_entity({
+      name = "flying-text",
+      position = player.position,
+      text = string.format("+%d xp", experience_rate),
+      color = Color.dodgerblue()
+    })
+  end
+
+  while new_experience >= experience_to_level do
+    
     levels[player.name].level = levels[player.name].level + 1
     levels[player.name].talent_points = levels[player.name].talent_points + 1
 
@@ -50,9 +57,67 @@ local function player_mined(event)
     }
     player.print({"info.level_up_message", levels[player.name].level, exception or reward_for_level, token})
     player.insert(insert)
-
+    experience_to_level = get_experience_to_level(levels[player.name].level + 1)
   end
+end
+
+
+local function player_mined(event)
+  local player = game.players[event.player_index]
+  local entity = event.entity
+
+  if not Validate.player(player) then return end
+  if not Validate.entity(entity) then return end
   
+  do_level_up(player, entity)
+
+  
+end
+
+local function entity_died(event)
+  local entity = event.entity
+  local cause = event.cause
+
+  if not Validate.entity(entity) then return end
+  if not cause then return end
+  if cause.name ~= "character" then return end
+  local player = cause.player
+  if not Validate.player(player) then return end
+
+  do_level_up(player, entity)
+end
+
+local function entity_damaged(event)
+  local entity_is_turret = false
+  local turrets = {
+    "small-worm-turret",
+    "medium-worm-turret",
+    "big-worm-turret",
+    "behemoth-worm-turret",
+  }
+
+  local entity = event.entity
+  local cause = event.cause
+
+  if not Validate.entity(entity) then return end
+  if not cause then return end
+  if cause.name ~= "character" then return end
+  local player = cause.player
+  if not Validate.player(player) then return end
+
+  for _, name in pairs(turrets) do
+    if name == entity.name then 
+      entity_is_turret = true
+      break
+     end
+  end
+
+  if not entity_is_turret then return end
+
+  if entity.health <= 0 then
+    do_level_up(player, entity)
+  end
+
 end
 
 local function get_point_string(level)
@@ -109,7 +174,11 @@ local function reset_talents(player)
   for upgrade, data in pairs(upgrades) do
     if not data.enabled then goto continue end
     levels[player.name].upgrades[upgrade] = 0
-    update_player_bonuses(player, upgrade, 1)
+    if upgrade == "Inventory" then
+      update_player_bonuses(player, upgrade, 0)
+    else
+      update_player_bonuses(player, upgrade, 1)
+    end
     ::continue::
   end
   levels[player.name].talent_points = levels[player.name].level
@@ -280,6 +349,15 @@ local function gui_click(event)
   elseif element.name == "level_gui_reset_button" then
     if not config.levels.reset.enabled then return end
 
+    local inventory = player.get_main_inventory()  
+    local occupied_slots = count_occupied_inventory_slots(inventory)
+  
+
+    if occupied_slots > 80 then  
+      player.print({"info.clear_inventory_before_resetting_talents", occupied_slots})
+      return
+    end
+
     if config.levels.reset.price.enabled then
       local inventory = player.get_main_inventory()
       local token = config.levels.reset.price.token
@@ -289,7 +367,7 @@ local function gui_click(event)
         player.print({"info.talent_reset_insufficient_funds", token, amount})
         return
       end
-      player.remove({ name = token, count = amount })
+      player.remove_item({ name = token, count = amount })
       reset_talents(player)
     else
       reset_talents(player)
@@ -320,5 +398,7 @@ end)
 Event.register("tick", update_gui)
 Event.register("player_created", player_created)
 Event.register("player_mined_entity", player_mined)
+Event.register("entity_died", entity_died)
+Event.register("entity_damaged", entity_damaged)
 Event.register("gui_click", gui_click)
 Event.register("gui_closed", gui_closed)

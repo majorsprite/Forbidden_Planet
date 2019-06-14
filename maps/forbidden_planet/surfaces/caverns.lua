@@ -1,6 +1,7 @@
 local config = require "maps.forbidden_planet.config"
 local Event = require "utils.event"
 local Global = require "utils.global"
+local Schedule = require "utils.schedule"
 local distance = require "utils.distance"
 local Perlin = require "utils.perlin"
 local Simplex = require "utils.simplex"
@@ -63,22 +64,16 @@ local function init()
   if global_config.player_elevator.enabled then
     init_teleport(surface)
   end
-
-  if global_config.circuit_network.enabled then
-    local pole = surface.create_entity{ name = "big-electric-pole", position = global_config.circuit_network.location, force = game.forces.neutral}
-    rendering.draw_text{
-      text = "Circuit Network",
-      surface = surface,
-      target = pole,
-      target_offset = {0, -0.4},
-      color = { r = 1, g = 1, b = 0},
-      alignment = "center"
-    }
-    pole.minable = false
-    pole.destructible = false
-  end
 end
 
+local function is_entity_rock(entity) 
+
+  for _, rock in pairs(rock_table) do
+    if entity.name == rock then return true end
+  end
+
+  return false
+end
 
 local function get_noise_for(x, y)
 
@@ -264,7 +259,7 @@ local function chunk_generated(event)
         if large > 0.8 then
           tile = "grass-1"
           
-          if small > 0  and large > 0.85 then
+          if  small < 0.9 and large > 0.93 then
             tile = "water"
           end
           
@@ -324,16 +319,13 @@ local function player_mined(event)
 
   if not Validate.player(player) then return end
   if not Validate.entity(entity) then return end
-
+  if not is_entity_rock(entity) then return end
   local x = entity.position.x
   local y = entity.position.y
   local surface = entity.surface
 
   event.buffer.clear()
-
   flood_fill(x, y, surface)
-
-  
 end
 
 local function entity_died(event)
@@ -341,16 +333,7 @@ local function entity_died(event)
   local loot = event.loot
 
   if not Validate.entity(entity) then return end
-
-  local entity_is_a_rock = false
-  for _, rock in pairs(rock_table) do
-    if rock == entity.name then
-      entity_is_a_rock = true
-      break
-    end
-  end
-
-  if not entity_is_a_rock then return end
+  if not is_entity_rock(entity) then return end
 
   if loot then loot.clear() end
   local surface = entity.surface

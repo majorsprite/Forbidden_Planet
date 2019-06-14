@@ -22,3 +22,7 @@ end
 if config.circuit_network.enabled then
   require "features.circuit_network"
 end
+
+if config.mined_rewards.enabled then
+  require "features.mined_rewards"
+end

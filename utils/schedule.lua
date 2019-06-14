@@ -35,11 +35,13 @@ function Schedule.next()
 end
 
 local function tick()
+  
   Schedule.next()
 
-  for _, task in pairs(scheduled_timeout_tasks)
-    if task.timeout >= game.tick then
-      table.remove(scheduled_timeout_tasks, _, 1)
+  for index, task in pairs(scheduled_timeout_tasks) do
+    if game.tick >= task.timeout then
+      pcall(task.func, unpack(task.args))
+      table.remove(scheduled_timeout_tasks, index, 1)
     end
   end
 
@@ -47,3 +49,5 @@ end
 
 
 Event.register("tick", tick)
+
+return Schedule

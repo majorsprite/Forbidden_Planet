@@ -2,25 +2,46 @@ local Event = require "utils.event"
 local config = require "config"
 
 local function init()
-  local caverns_pole = game.surfaces["caverns"].find_entities_filtered({
-    area = {config.circuit_network.location, config.circuit_network.location},
-    name = "big-electric-pole",
-    limit = 1
-  })[1]
-  local overworld_pole = game.surfaces["overworld"].find_entities_filtered({
-    area = {config.circuit_network.location, config.circuit_network.location},
-    name = "big-electric-pole",
-    limit = 1
-  })[1]
 
-  caverns_pole.connect_neighbour({
+  local entity = "constant-combinator"
+  local overworld = game.surfaces["overworld"].create_entity{ name = entity, position = config.circuit_network.location, force = game.forces.neutral}
+  local caverns = game.surfaces["caverns"].create_entity{ name = entity, position = config.circuit_network.location, force = game.forces.neutral}
+
+  rendering.draw_text{
+      text = "Circuit Network",
+      surface = overworld.surface,
+      target = overworld,
+      target_offset = {0, -0.4},
+      color = { r = 1, g = 1, b = 0},
+      alignment = "center"
+  }
+  
+  rendering.draw_text{
+    text = "Circuit Network",
+    surface = caverns.surface,
+    target = caverns,
+    target_offset = {0, -0.4},
+    color = { r = 1, g = 1, b = 0},
+    alignment = "center"
+  }
+
+
+  overworld.minable = false
+  overworld.destructible = false
+  caverns.minable = false
+  caverns.destructible = false
+
+  
+
+  overworld.connect_neighbour({
     wire = defines.wire_type.green,
-    target_entity = overworld_pole
+    target_entity = caverns
   })
-  caverns_pole.connect_neighbour({
+  overworld.connect_neighbour({
     wire = defines.wire_type.red,
-    target_entity = overworld_pole
+    target_entity = caverns
   })
+
 end
 
 Event.on_init(init)

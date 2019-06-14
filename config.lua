@@ -17,6 +17,7 @@ global.config = {
         amount = 25
       }
     },
+    experience_drops_enabled = true,
     get_experience_to_level = function(level)
       local value = math.floor(250+(50 * (level ^ 3)) / 5)
       return value
@@ -46,17 +47,45 @@ global.config = {
       }
     },
     experience_rates = {
-      
+      --rocks
       ["rock-huge"]       = 25, 
       ["rock-big"]        = 20, 
       ["sand-rock-big"]   = 25,
-
-      ["small-biter"]     = 5,
-      ["medium-biter"]    = 10,
-      ["big-biter"]       = 100,
-      ["behemoth-biter"]  = 500,
+      --biters
+      ["small-biter"]     = 5^1,
+      ["medium-biter"]    = 5^2,
+      ["big-biter"]       = 5^3,
+      ["behemoth-biter"]  = 5^4,
+      --spitters
+      ["small-spitter"]     = 6^1,
+      ["medium-spitter"]    = 6^2,
+      ["big-spitter"]       = 6^3,
+      ["behemoth-spitter"]  = 6^4,
+      --worms
+      ["small-worm-turret"]     = 10^1,
+      ["medium-worm-turret"]    = 10^2,
+      ["big-worm-turret"]       = 10^3,
+      ["behemoth-worm-turret"]  = 10^4,
+      --nests
+      ["biter-spawner"]   = 6^3,
+      ["spitter-spawner"] = 6^3
      } 
   },
+  mined_rewards = { 
+    enabled = true,
+    entities = {
+      rocks = {
+        entities = { 
+          "rock-huge", 
+          "rock-big",
+          "sand-rock-big"
+        },
+        rewards = function() 
+          return {name = "coin", count = 1} 
+        end
+      }
+    }
+   },
   darkness_tracker = { enabled = true },
   chat_bubbles = { enabled = true },
   player_elevator = {
