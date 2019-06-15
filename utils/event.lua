@@ -93,4 +93,22 @@ function Event.on_nth_tick(tick, handler)
   end
 end
 
+function Event.create_custom_event(name)
+  if defines.events[name] then
+    error("Event already created", 2)
+  end
+
+  local id = script.generate_event_name()
+  defines.events[name] = id
+  return id
+end
+
+function Event.trigger(name, data)
+  local id = defines.events[name]
+  if not id then 
+    error("Custom event name not found", 2)
+  end
+  script.raise_event(id, data)
+end
+
 return Event

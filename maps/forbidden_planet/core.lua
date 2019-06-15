@@ -16,3 +16,8 @@ Event.register("player_created", function(event)
     player.insert { name = "coin", count = 1000 }
     --player.character_mining_speed_modifier = 100
 end)
+
+
+commands.add_command("print", "print", function() 
+    Print.raw_print("what does this do?")
+end)

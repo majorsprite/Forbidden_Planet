@@ -26,3 +26,7 @@ end
 if config.mined_rewards.enabled then
   require "features.mined_rewards"
 end
+
+if config.darkness_threat.enabled then
+  require "features.darkness_threat"
+end

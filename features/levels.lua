@@ -14,11 +14,15 @@ Global.register({ levels = levels }, function (global)
   levels = global.levels
 end)
 
+Event.create_custom_event("on_player_upgraded_stats")
+Event.create_custom_event("on_player_reset_stats")
+
 
 local max_upgrades = config.levels.max_upgrades
 local upgrades = config.levels.upgrades
 local get_experience_to_level = config.levels.get_experience_to_level
 local experience_drops_enabled = config.levels.experience_drops_enabled
+
 
 
 local function do_level_up(player, entity)
@@ -42,7 +46,6 @@ local function do_level_up(player, entity)
   end
 
   while new_experience >= experience_to_level do
-    
     levels[player.name].level = levels[player.name].level + 1
     levels[player.name].talent_points = levels[player.name].talent_points + 1
 
@@ -61,7 +64,6 @@ local function do_level_up(player, entity)
   end
 end
 
-
 local function player_mined(event)
   local player = game.players[event.player_index]
   local entity = event.entity
@@ -70,8 +72,26 @@ local function player_mined(event)
   if not Validate.entity(entity) then return end
   
   do_level_up(player, entity)
-
   
+  
+end
+
+local function update_player_bonuses(player, upgrade, level)
+
+  if upgrade == "Mining" then
+    player.character_mining_speed_modifier = config.levels.upgrades["Mining"].bonus_per_level * level
+  elseif upgrade == "Crafting" then
+    player.character_crafting_speed_modifier = config.levels.upgrades["Crafting"].bonus_per_level * level
+  elseif upgrade == "Inventory" then
+    player.character_inventory_slots_bonus = config.levels.upgrades["Inventory"].bonus_per_level * level
+  elseif upgrade == "Health" then
+    player.character_health_bonus = config.levels.upgrades["Health"].bonus_per_level * level
+  elseif upgrade == "Reach" then
+    player.character_resource_reach_distance_bonus = config.levels.upgrades["Reach"].bonus_per_level * level
+  elseif upgrade == "Speed" then
+    player.character_running_speed_modifier = config.levels.upgrades["Speed"].bonus_per_level * level
+  end
+
 end
 
 local function entity_died(event)
@@ -85,6 +105,18 @@ local function entity_died(event)
   if not Validate.player(player) then return end
 
   do_level_up(player, entity)
+end
+
+local function player_respawned(event)
+  local player = game.players[event.player_index]
+  if not Validate.player(player) then return end
+
+  for upgrade, data in pairs(upgrades) do
+    if not data.enabled then goto continue end
+    update_player_bonuses(player, upgrade, levels[player.name].upgrades[upgrade])
+    ::continue::
+  end
+
 end
 
 local function entity_damaged(event)
@@ -133,7 +165,6 @@ local function player_created(event)
 
   local player = game.players[event.player_index]
   
-  local flow = player.gui.top.add{ type = "flow" }
   local button = player.gui.top.add{ type = "button", caption = "level: 1", name = "level_gui_open_button"}
 
   local player_upgrades = {}
@@ -147,26 +178,9 @@ local function player_created(event)
     upgrades = player_upgrades, 
     level = 1,
     experience = 0, 
-    talent_points = 1
+    talent_points = 100
   }
 
-
-end
-
-local function update_player_bonuses(player, upgrade, level)
-  if upgrade == "Mining" then
-    player.character_mining_speed_modifier = config.levels.upgrades["Mining"].bonus_per_level * level
-  elseif upgrade == "Crafting" then
-    player.character_crafting_speed_modifier = config.levels.upgrades["Crafting"].bonus_per_level * level
-  elseif upgrade == "Inventory" then
-    player.character_inventory_slots_bonus = config.levels.upgrades["Inventory"].bonus_per_level * level
-  elseif upgrade == "Health" then
-    player.character_health_bonus = config.levels.upgrades["Health"].bonus_per_level * level
-  elseif upgrade == "Reach" then
-    --player.character_reach_distance_bonus = reach_bonus * level
-    player.character_resource_reach_distance_bonus = config.levels.upgrades["Reach"].bonus_per_level * level
-  elseif upgrade == "Fortune" then
-  end
 
 end
 
@@ -269,6 +283,7 @@ local function gui_click(event)
     levels[player.name].upgrades[upgrade_name] = upgrade + 1
     update_player_bonuses(player, upgrade_name, levels[player.name].upgrades[upgrade_name])
     levels[player.name].talent_points = talent_points - 1
+    Event.trigger("on_player_upgraded_stats", { player_index = player.index, upgrade = upgrade_name, level = levels[player.name].upgrades[upgrade_name] })
   elseif element.name == "level_gui_open_button" then
     if levels[player.name].frame then 
       player.opened = nil
@@ -372,6 +387,7 @@ local function gui_click(event)
     else
       reset_talents(player)
     end
+    Event.trigger("on_player_reset_stats", { player_index = player.index })
   end
 end
 
@@ -395,10 +411,13 @@ commands.add_command("levels", "usage /levels or /levels <name>\nLists the level
 end)
 
 
+
 Event.register("tick", update_gui)
 Event.register("player_created", player_created)
 Event.register("player_mined_entity", player_mined)
+Event.register("player_respawned", player_respawned)
 Event.register("entity_died", entity_died)
 Event.register("entity_damaged", entity_damaged)
 Event.register("gui_click", gui_click)
 Event.register("gui_closed", gui_closed)
+

@@ -1,3 +1,4 @@
+local Global = require("utils.global")
 global.config = {
 
   market = {
@@ -27,8 +28,9 @@ global.config = {
       ["Crafting"]  = { enabled = true, bonus_per_level = 0.25 },
       ["Inventory"] = { enabled = true, bonus_per_level = 10 },
       ["Health"]    = { enabled = true, bonus_per_level = 50 },
+      ["Speed"]     = { enabled = true, bonus_per_level = 0.1 },
       ["Reach"]     = { enabled = true, bonus_per_level = 0.25 },
-      ["Fortune"]   = { enabled = false, bonus_per_level = 1 }
+      ["Fortune"]   = { enabled = true, bonus_per_level = 0.25 }
      },
     level_rewards = {
       token = "coin",
@@ -48,9 +50,9 @@ global.config = {
     },
     experience_rates = {
       --rocks
-      ["rock-huge"]       = 25, 
-      ["rock-big"]        = 20, 
-      ["sand-rock-big"]   = 25,
+      ["rock-huge"]       = 15, 
+      ["rock-big"]        = 10, 
+      ["sand-rock-big"]   = 15,
       --biters
       ["small-biter"]     = 5^1,
       ["medium-biter"]    = 5^2,
@@ -80,13 +82,16 @@ global.config = {
           "rock-big",
           "sand-rock-big"
         },
-        rewards = function() 
-          return {name = "coin", count = 1} 
-        end
+        rewards = {
+          ["iron-ore"]    = { bias = 5, min = 1, max = 3},
+          ["copper-ore"]  = { bias = 3, min = 1, max = 3},
+          ["coal"]        = { bias = 3, min = 1, max = 3},
+          ["stone"]       = { bias = 1, min = 1, max = 3},
+        }
       }
     }
    },
-  darkness_tracker = { enabled = true },
+  darkness_threat = { enabled = true },
   chat_bubbles = { enabled = true },
   player_elevator = {
     enabled = true,

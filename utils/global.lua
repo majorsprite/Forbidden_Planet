@@ -16,17 +16,10 @@ function Global.register(data, callback)
   Event.on_load(function()  
     local tmp = {}
     for k, _ in pairs(data) do
-      tmp[k] = Global.get(k)
+      tmp[k] = global.data[k]
     end
     callback(tmp)  
   end)
-  
 end
-
-
-function Global.get(index)
-  return global.data[index]
-end
-
 
 return Global
