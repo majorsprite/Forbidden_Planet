@@ -19,5 +19,5 @@ end)
 
 
 commands.add_command("print", "print", function() 
-    Print.raw_print("what does this do?")
+    log("[SYSTEM] what does this do?")
 end)
