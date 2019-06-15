@@ -11,3 +11,4 @@
 
 # Ignore the server-settings.json file
 /server-settings.json
+/node_server/token.json

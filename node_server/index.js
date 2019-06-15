@@ -1,21 +1,19 @@
 const { spawn } = require('child_process');
 const readline = require('readline');
 
-
 const cmd = '/opt/factorio/bin/x64/factorio'
-
-
 const factorio = spawn(cmd, ["--start-server-load-scenario", "forbidden_planet", "--server-settings", "/opt/factorio/scenarios/forbidden_planet/server-settings.json"]);
+
+
 const rl = readline.createInterface({
   input: process.stdin,
-  output: factorio.stdout
 });
+
 
 rl.on("line", data => {
   console.log(`[Internal] ${data}`)
-  rl.write(data)
+ factorio.stdin.write(`${data}\n`)
 })
-
 
 factorio.stderr.on('data', (data) => {
   console.log(`stderr: ${data}`);
@@ -23,9 +21,70 @@ factorio.stderr.on('data', (data) => {
 
 
 factorio.stdout.on("data", data => {
-  console.log(`stdout: ${data}`);
+  const messageFilter = /.*\[CHAT\]\s?(.*)/
+  const match = messageFilter.exec(`${data}`)
+  if(match)
+    message("bananas", match[1])
 })
 
 factorio.on('error', (err) => {
   console.log('Failed to start subprocess.');
 });
+
+
+// --------------------------------------------- Discord stuff
+
+const Discord = require('discord.js');
+const client = new Discord.Client();
+const auth = require('./auth')
+
+const escapeMessage = message => {
+
+  let escaped = message.replace(/\n/g, "")
+  escaped = escaped.replace(/(["'\\])/g, "\\$1")
+  return escaped
+}
+
+client.on('ready', () => {
+  console.log(`Logged in as ${client.user.tag}!`);
+});
+
+client.on('message', message => {
+  if(message.type != "DEFAULT") return
+  const text = escapeMessage(message.cleanContent)
+  if(message.author.bot) return
+  if(message.channel.name == "bananas"){
+
+    const commandFilter = /^!(.*)/
+    const command = commandFilter.exec(text)
+    if(command){
+      if(command.length > 1){
+        if(message.member.roles.find(r => r.name === "Administrator") || message.member.roles.find(r => r.name === "Moderator")){
+          const temp = command[1].split(" ")
+          const cmd = temp[0]
+          const target = temp[1]
+          const args = temp.slice(2, temp.length).join(" ")
+
+          if(cmd == "kick"){
+            factorio.stdin.write(`/silent-command game.kick_player("${target}")\n`)
+            message.channel.send(`${message.author.username} ran command: ${cmd} with args: ${args}`)
+          }else if(cmd == "restart"){
+
+          }
+        }
+      }
+    }else{
+
+      factorio.stdin.write(`/silent-command game.print("[Discord](${message.author.username}): ${text}", { r = 0.4, g = 0.6, b = 0.7})\n`)
+    }
+  }
+});
+
+client.login(auth.token);
+
+
+const message = (channelName, message) => {
+  const bananas = client.channels.find(channel => channel.name === channelName)
+  if(!bananas) return
+  bananas.send(message)
+}
