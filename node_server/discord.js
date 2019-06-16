@@ -77,6 +77,11 @@ const commands = {
     params: "*<**new** | **latest**>* *default:* **latest**",
     info: "restarts the server",
     usage: "!restart"
+  },
+  online: {
+    params: "",
+    info: "Logs the current online player count",
+    usage: "!online"
   }
 }
 const printHelp = (channelName) => {
@@ -122,6 +127,7 @@ class Server {
   constructor(opts) {
 
     this.process = undefined
+    this._online = false
     this.options = Object.assign({
       launch: {
         path: '/opt/factorio/bin/x64/factorio',
@@ -174,6 +180,13 @@ class Server {
     this.process.stdin.write(`/silent-command game.print("[Discord] ${user}: ${text}", { r = 0.4, g = 0.6, b = 1})\n`)
   }
 
+  set online(o){
+    this._online = o
+  }
+  get online(){
+    return this._online
+  }
+
   _set_triggers(factorio_process){
 
     factorio_process.stdout.on("data", data => {
@@ -195,8 +208,10 @@ class Server {
       if(error)
        messageEmbedded("bananas", "Error", statusMessages.error.replace('__ERROR__', error[1]), 0xff0000)
 
-      if(started.test(data))
+      if(started.test(data)){
         event.trigger("started")
+        server.online =true
+      }
 
       if(join){
         const user = join[1].split(" ")[0]
@@ -210,14 +225,13 @@ class Server {
         const text = data.slice(1, data.length)
         chatMessage("bananas", user, text.join(" "))
       }else if(online){
-        console.log("online")
         messageEmbedded("bananas", "Status", statusMessages.online.replace('__ONLINE__', online[1]), 0x0000ff)
       }
-
     })
 
     factorio_process.on('close', (code) => {
       event.trigger("stop")
+      server.online = false
     });
     
     factorio_process.on('error', (err) => {
@@ -257,7 +271,10 @@ client.on('message', async message => {
 
     const param = message.content.split(/\s/g)[1]
     if (message.content.startsWith('!online')) {
-      server.online_players()
+      if(!server.online)
+        messageEmbedded("bananas", "Error", "Server is currently not running", 0xff0000)
+      else
+        server.online_players()
     } else if (message.content.startsWith('!start')) {
 
       event.register("started", () => {
@@ -278,7 +295,7 @@ client.on('message', async message => {
       messageEmbedded("bananas", "Status", statusMessages.restart.replace('__USER__', messageAuthor), 0xffff00)
     }
   } else {
-    
+    if(!server.online) return
     const text = escapeString(message.cleanContent)
     server.message(message.author.username,text)
 

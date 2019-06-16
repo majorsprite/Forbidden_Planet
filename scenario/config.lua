@@ -104,6 +104,12 @@ global.config = {
   circuit_network = {
     enabled = true,
     location = {-6, 0}
+  },
+  rocket_defence = {
+    enabled = true,
+    surface = "overworld",
+    position = { x = 0, y = -10 },
+    restart_on_destroyed = true
   }
 }
 

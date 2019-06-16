@@ -30,3 +30,6 @@ end
 if config.darkness_threat.enabled then
   require "features.darkness_threat"
 end
+if config.rocket_defence.enabled then
+  require "features.rocket_defence"
+end
