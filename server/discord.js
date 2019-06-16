@@ -134,7 +134,7 @@ class Server {
         latest: '--start-server-load-latest',
         new: '--start-server-load-scenario',
         name: 'forbidden_planet',
-        config: '/opt/factorio/scenarios/forbidden_planet/server-settings.json'
+        config: '/opt/factorio/data/dev-server-settings.json'
       },
     }, opts)
   }
