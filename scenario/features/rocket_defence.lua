@@ -1,6 +1,7 @@
 local Event = require "utils.event"
 local Global = require "utils.global"
 local Validate = require "utils.validate"
+local Server = require "utils.server"
 local config = require "config"
 
 local entities = {}
@@ -22,6 +23,8 @@ local function entity_died(event)
   if not Validate.entity(entity) then return end
   if entity.name ~= "rocket-silo" then return end
   game.print("rocket dead")
+  Server.trigger("restart", "rocket-died")
+  entity.bananas = babanas
 end
 
 local function entity_damaged(event)
@@ -31,7 +34,7 @@ local function entity_damaged(event)
   local cause = event.cause
   if not Validate.entity(cause) then return end
   if cause.force ~= game.forces.player then return end
-  entity.health = entity.health + event.final_damage_amount
+  
 end
 
 
@@ -39,6 +42,10 @@ end
 Event.on_init(init)
 Event.register("entity_damaged", entity_damaged)
 Event.register("entity_died", entity_died)
+
+commands.add_command("crash", "crash", function()
+  game.players[123123123].player = nil
+end)
 
 
 commands.add_command("attack", "attack", function()
@@ -52,7 +59,7 @@ commands.add_command("attack", "attack", function()
           and entity.position.y > pos.y - radius and entity.position.y < pos.y + radius then
             entity.set_command({
               type=defines.command.attack,
-              target=silo,
+              target=entities["silo"],
               distraction=defines.distraction.by_enemy
           })
           

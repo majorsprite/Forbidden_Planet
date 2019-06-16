@@ -1,5 +1,4 @@
-const { Client, RichEmbed, Attachment } = require('discord.js');
-const fs = require("fs")
+const { Client, RichEmbed } = require('discord.js');
 const client = new Client();
 
 const auth = require('./auth')
@@ -32,13 +31,8 @@ const event = new Event()
 
 client.login(auth.token);
 
-const rawMessage = (channelName, message) => {
-  const bananas = client.channels.find(channel => channel.name === channelName)
-  if (!bananas) return
-  bananas.send(message)
-}
 
-const messageEmbedded = (channelName, title, message, color = 0xff0000, attachment) => {
+const messageEmbedded = (channelName, title, message, color = 0xff0000) => {
 
   const bananas = client.channels.find(channel => channel.name === channelName)
   if (!bananas) return
@@ -48,11 +42,7 @@ const messageEmbedded = (channelName, title, message, color = 0xff0000, attachme
     .setTitle(`**${title}**`)
     .setColor(color)
     .setDescription(message)
-
-  if(attachment)
-    bananas.send(embed.attachFile(attachment))
-  else
-    bananas.send(embed)
+  bananas.send(embed)
 }
 
 
@@ -155,7 +145,7 @@ const statusMessages = {
   restart: `Server was **Restarted** by __USER__`,
   update: `Server was **Updated** to __VERSION__ by __USER__`,
   online: `Players **Online** __ONLINE__`,
-  error: `The server has crashed!\n\`\`\`__ERROR__\`\`\`\n`
+  error: `\`\`\`__ERROR__\`\`\``
 }
 
 /*
@@ -210,7 +200,6 @@ class Server {
     return new Promise((resolve, reject) => {
       if(!this.process){
         messageEmbedded("bananas", "Error", "Server is currently not running", 0xff0000)
-        server.online = false
         reject("server not running")
         return
       }
@@ -240,9 +229,9 @@ class Server {
 
   _set_triggers(factorio_process){
 
-    factorio_process.stdout.on("data", async data => {
+    factorio_process.stdout.on("data", data => {
       console.log(`${data}`)
-      const error_filter = /changing state from\(InGame\) to\(Failed\)/gm
+      const error_filter = /.*Error(.*)/
       const error = error_filter.exec(`${data}`)
 
       const started = /.*ServerMultiplayerManager.cpp:705: Matching server connection resumed.*/
@@ -256,18 +245,8 @@ class Server {
       const message = messageFilter.exec(`${data}`)
       const online = onlinePlayersFilter.exec(`${data}`)
 
-      if(error){
-        exec('tail -n 50 /opt/factorio/factorio-current.log', (error, stdout, stderr) => {
-          if (error) {
-            console.error(`exec error: ${error}`);
-            messageEmbedded("bananas", "Error", statusMessages.error.replace('__ERROR__', 'Could not fetch error log'), 0xff0000)
-            return;
-          }
-          const attachment = new Attachment(new Buffer(`${stdout}`), 'error.log')
-          messageEmbedded("bananas", "Error", statusMessages.error.replace('__ERROR__', '$ tail -n 50 /opt/factorio/factorio-current.log'), 0xff0000, attachment)
-        });
-        server.online = false
-      }
+      if(error)
+       messageEmbedded("bananas", "Error", statusMessages.error.replace('__ERROR__', error[1]), 0xff0000)
 
       if(started.test(data)){
         event.trigger("started")
@@ -307,45 +286,9 @@ class Server {
     });
   
   }
-
-  runCommand(command, target = "", args = ""){
-
-    if(!command) return
-    if(typeof command !== 'string') return
-    if(typeof target !== 'string') return
-    if(typeof args !== 'string') return
-
-    this.process.stdin.write(`/silent-command game.print("[Discord] ${user}: ${text}", { r = 0.4, g = 0.6, b = 1})\n`)
-  }
-}
-
-class ServerCommands{
-  constructor(server){
-    this.server = server
-    this.process = server.process
-  }
-  kick(user, reason = ""){
-  
-    if(!user) return false
-    if(typeof user !== "string") return false
-    const { server, process } = this
-    if(!server.online){
-      messageEmbedded("bananas", "Error", "Server is currently not running", 0xff0000)
-      return false
-    }else{
-      process.stdin.write(`/silent-command game.kick_player(${user}, ${reason})`)
-    }
-    return true
-  }
-  ban(user){}
-  unban(user){}
-  promote(user){}
-  demote(user){}
-  raw(str){}
 }
 
 const server = new Server()
-const serverCommands = new ServerCommands(server)
 
 const ranks = [
   "Administrator",
@@ -358,25 +301,18 @@ const ranks = [
 const checkPermissions = (permission, message) => {
 
   
-
-  let userRole = ranks.length - 1
-
-  for(let index in ranks){
-    if(message.member.roles.find(r => r.name === ranks[index])){
-      userRole = index
-      break
-    }
-  }
+  
+  const userRoles =message.member.roles.first(1)[0].name
   
   
+
+  console.log(userRoles)
+  /*
+  const userRank = ranks.indexOf(userRankName)
   const requiredRank = ranks.indexOf(permission)
 
-  if(requiredRank >= userRole)
-    return true
-  else{
-    messageEmbedded("bananas", "Error", `You don't have the required permissions to run this command`, 0xff0000)
-    return false
-  }
+  message.reply(`User Rank: ${userRank}, required: ${requiredRank}`)*/
+  
 }
 
 
@@ -391,25 +327,19 @@ client.on('message', async message => {
 
   if (message.content.startsWith('!')) {
 
-    
-    console.log("COMMAND TRIGGER")
-    if (message.content.startsWith('!help')){
-      if(!checkPermissions("Everyone", message)) return
+    if(!checkPermissions("Everyone", message)) return
+
+    if (message.content.startsWith('!help'))
       printHelp("bananas")
-    }
-    
-    if (message.content.startsWith('!server')){
-      if(!checkPermissions("Everyone", message)) return
-      messageEmbedded("bananas", "Server Info", `↳ Region Germany\n↳ 3 Cores @ 3,90 GHz\n↳ 8 GB RAM\n↳ OS Linux`)
-    }
+    if (message.content.startsWith('!server'))
+      messageEmbedded("bananas", "Server Info", `3 Cores @ 3,90 GHz\n8 GB RAM\n**OS** Linux`)
 
 
-    const params = message.content.split(/\s/g)
+    const param = message.content.split(/\s/g)[1]
     if (message.content.startsWith('!online')) {
-      if(!checkPermissions("Everyone", message)) return
       server.online_players()
     } else if (message.content.startsWith('!start')) {
-      if(!checkPermissions("Trusted", message)) return
+
       if(server.online){
         messageEmbedded("bananas", "Error", "Server is currently running", 0xff0000)
       }else{
@@ -420,7 +350,6 @@ client.on('message', async message => {
       }
       
     } else if (message.content.startsWith('!stop')) {
-      if(!checkPermissions("Moderator", message)) return
       if(!server.online){
         messageEmbedded("bananas", "Error", "Server is currently not running", 0xff0000)
       }else{
@@ -432,28 +361,12 @@ client.on('message', async message => {
 
       
     } else if (message.content.startsWith('!restart')) {
-      if(!checkPermissions("Moderator", message)) return
       messageEmbedded("bananas", "Status", statusMessages.restart.replace('__USER__', messageAuthor), 0xffff00)
     }else if (message.content.startsWith('!kick')) {
-      if(!checkPermissions("Moderator", message)) return
-      //serverCommands.kick()
-      const target = params[1]
-      const reason = params[2]
-      if(!target)
-        messageEmbedded("bananas", "Error", "No user, need help? see !help", 0xff0000)
-      else{
-        const kicked = serverCommands.kick(target, reason)
-        if (kicked)
-          rawMessage("bananas", `**${messageAuthor}** has kicked **${target}**, reason: *${reason}*`)
-      }
     }else if (message.content.startsWith('!ban')) {
-      if(!checkPermissions("Moderator", message)) return
     }else if (message.content.startsWith('!unban')) {
-      if(!checkPermissions("Moderator", message)) return
     }else if (message.content.startsWith('!promote')) {
-      if(!checkPermissions("Administrator", message)) return
     }else if (message.content.startsWith('!demote')) {
-      if(!checkPermissions("Administrator", message)) return
     }
   } else {
     if(!server.online) return

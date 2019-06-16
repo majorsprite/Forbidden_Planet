@@ -13,7 +13,7 @@ local rocks = config.mined_rewards.entities.rocks
 local fortune = {}
 
 Global.register({ fortune = fortune }, function (global)
-  fortune = fortune
+  fortune = global.fortune
 end)
 
 
