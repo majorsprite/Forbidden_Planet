@@ -2,34 +2,86 @@ const { spawn } = require('child_process');
 const readline = require('readline');
 
 const cmd = '/opt/factorio/bin/x64/factorio'
-const factorio = spawn(cmd, ["--start-server-load-scenario", "forbidden_planet", "--server-settings", "/opt/factorio/scenarios/forbidden_planet/server-settings.json"]);
+
+const constants = {
+  LATEST : '--start-server-load-latest',
+  NEW: '--start-server-load-scenario'
+}
+
+let factorio_process = undefined
 
 
 const rl = readline.createInterface({
   input: process.stdin,
 });
 
-
-rl.on("line", data => {
-  console.log(`[Internal] ${data}`)
- factorio.stdin.write(`${data}\n`)
-})
-
-factorio.stderr.on('data', (data) => {
-  console.log(`stderr: ${data}`);
-});
+const startServer = (params, msg = "started") => {
 
 
-factorio.stdout.on("data", data => {
-  const messageFilter = /.*\[CHAT\]\s?(.*)/
-  const match = messageFilter.exec(`${data}`)
-  if(match)
-    message("bananas", match[1])
-})
+  if(factorio_process)
+    return
 
-factorio.on('error', (err) => {
-  console.log('Failed to start subprocess.');
-});
+  if(params == 'NEW')
+    factorio_process = spawn(cmd, [constants.NEW, "forbidden_planet", "--server-settings", "/opt/factorio/scenarios/forbidden_planet/server-settings.json"]);
+  else if (params == 'LATEST')
+    factorio_process = spawn(cmd, [constants.LATEST, "--server-settings", "/opt/factorio/scenarios/forbidden_planet/server-settings.json"]);
+
+  message("bananas", `[SERVER] ${msg}.`)
+  
+  rl.on("line", data => {
+    console.log(`[Internal] ${data}`)
+    factorio_process.stdin.write(`${data}\n`)
+  })
+  
+  factorio_process.stderr.on('data', (data) => {
+    console.log(`stderr: ${data}`);
+  });
+  
+  
+  factorio_process.stdout.on("data", data => {
+
+
+
+    const messageFilter = /.*\[CHAT\]\s?(.*)/
+    const match = messageFilter.exec(`${data}`)
+
+    const fail_filter = /.*Error(.*)/
+    const fail = fail_filter.exec(`${data}`)
+    if(match)
+      message("bananas", match[1])
+
+    if(fail)
+      message("bananas",`[FAILED] ${fail[1]}`)
+  })
+  
+  factorio_process.on('error', (err) => {
+    console.log('Failed to start subprocess.');
+  });
+
+  factorio_process.on('close', (code) => {
+    factorio_process = undefined
+    console.log(`child process exited with code ${code}`);
+  });
+}
+
+const stopServer = (params) => {
+  if(factorio_process)
+    factorio_process.kill('SIGHUP')
+  message("bananas", "[SERVER] stopped.")
+  return true
+}
+
+const restartServer = (params) => {
+
+  if(!factorio_process)
+    return startServer(params)
+
+  message("bananas", "[SERVER] stopping the server please hold... restarting in ~30 sec")
+  stopServer()
+  setTimeout(() => startServer(params, "restarted"), 1000 * 30)
+  return true
+}
+
 
 
 // --------------------------------------------- Discord stuff
@@ -66,16 +118,26 @@ client.on('message', message => {
           const args = temp.slice(2, temp.length).join(" ")
 
           if(cmd == "kick"){
-            factorio.stdin.write(`/silent-command game.kick_player("${target}")\n`)
+            if(factorio_process)
+              factorio_process.stdin.write(`/silent-command game.kick_player("${target}")\n`)
             message.channel.send(`${message.author.username} ran command: ${cmd} with args: ${args}`)
           }else if(cmd == "restart"){
-
+            const temp = target == "new" ? "NEW" : "LATEST" 
+            console.log(`restart ${target}`)
+            const restarted = restartServer(temp)
+          }else if(cmd == "stop"){
+            console.log(`stop`)
+            const stopped = stopServer()
+          }else if(cmd == "start"){
+            const temp = target == "new" ? "NEW" : "LATEST" 
+            console.log(`start ${target}`)
+            const started = startServer(temp)
           }
         }
       }
     }else{
-
-      factorio.stdin.write(`/silent-command game.print("[Discord](${message.author.username}): ${text}", { r = 0.4, g = 0.6, b = 0.7})\n`)
+      if(factorio_process)
+        factorio_process.stdin.write(`/silent-command game.print("[Discord](${message.author.username}): ${text}", { r = 0.4, g = 0.6, b = 0.7})\n`)
     }
   }
 });
