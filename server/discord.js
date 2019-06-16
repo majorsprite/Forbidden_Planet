@@ -330,8 +330,8 @@ class ServerCommands{
     if(typeof user !== "string") return false
     const { server, process } = this
     if(!server.online){
+
       messageEmbedded("bananas", "Error", "Server is currently not running", 0xff0000)
-      return false
     }else{
       process.stdin.write(`/silent-command game.kick_player(${user}, ${reason})`)
     }
@@ -370,6 +370,7 @@ const checkPermissions = (permission, message) => {
   
   
   const requiredRank = ranks.indexOf(permission)
+  console.log(userRole, requiredRank)
 
   if(requiredRank >= userRole)
     return true
