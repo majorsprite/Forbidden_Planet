@@ -34,9 +34,9 @@ class ServerController {
       let process
 
       if (param == 'new') {
-        process = spawn(path, [startNew, name, '--server-settings', config])
+        process = spawn(path, [startNew, name, '--server-settings', config, '--rcon-port', '3001', '--rcon-password', 'root'])
       } else if (param == 'latest') {
-        process = spawn(path, [startLatest, '--server-settings', config])
+        process = spawn(path, [startLatest, '--server-settings', config, '--rcon-port', '3001', '--rcon-password', 'root'])
       } else {
         reject(1)
       }
@@ -52,7 +52,7 @@ class ServerController {
         }
 
         if (debug)
-          console.log(`CHUNK START =======================\n${chunk}\nCHUNK END =======================`)
+          console.log(`${raw}`)
       })
 
       this._process = process
@@ -68,6 +68,9 @@ class ServerController {
   }
   get process() {
     return this._process
+  }
+  status(){ 
+    exec('nmap -p 34197 -sU localhost | grep open', )
   }
   restart() { }
   update() { }

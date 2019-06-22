@@ -4,13 +4,16 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node bin/dev.js"
+    "start": "node bin/dev.js",
+    "rcon": "node bin/rcon.js"
   },
   "dependencies": {
+    "@babel/runtime": "^7.4.5",
     "discord.js": "^11.5.1"
-  },  
+  },
   "devDependencies": {
     "@babel/core": "^7.1.2",
+    "@babel/plugin-transform-runtime": "^7.4.4",
     "@babel/preset-env": "^7.1.0",
     "@babel/register": "^7.0.0"
   }

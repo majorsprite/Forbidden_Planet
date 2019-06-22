@@ -13,3 +13,4 @@
 /server-settings.json
 /dev-server-settings.json
 /server/auth.json
+/server/node_modules

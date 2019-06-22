@@ -175,6 +175,8 @@ class DiscordCommands{
       case 'stop':
         this.stop(...params)
         break
+      case 'status':
+        break
     }
   }
 
@@ -283,6 +285,10 @@ class DiscordCommands{
     discord.serverCommands.stop()
     .then(() => discord.send(channel, `**${invoker}** Initialized a server stop. Please hold`))
     .catch(e => discord.embed(channel, 'Error:', 'Something went wrong during the Initialization 😢'))
+  }
+
+  status(){
+    
   }
 }
 

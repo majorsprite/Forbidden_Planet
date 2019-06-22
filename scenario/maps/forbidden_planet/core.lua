@@ -1,5 +1,6 @@
 local config = require "config"
 local Event = require "utils.event"
+local Log = require "utils.log"
 
 require "surfaces.caverns"
 require "surfaces.overworld"
@@ -19,5 +20,5 @@ end)
 
 
 commands.add_command("print", "print", function() 
-    log("[SYSTEM] what does this do?")
+    rcon.print('hello')
 end)
